@@ -37,6 +37,7 @@ class FlipFlopOpt(DiscreteOpt):
     def evaluate_population_fitness(self):
         # Calculate fitness
         pop_fitness = self.fitness_fn.evaluate_many(self.population)
+        self.fitness_evaluations += len(self.population)
         self.pop_fitness = pop_fitness
 
     def random_pop(self, pop_size):
