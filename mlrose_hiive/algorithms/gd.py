@@ -12,7 +12,7 @@ from mlrose_hiive.neural.utils import flatten_weights
 @short_name('gd')
 def gradient_descent(problem, max_attempts=10, max_iters=np.inf,
                      init_state=None, curve=False, random_state=None,
-                     state_fitness_callback=None, callback_user_info=None):
+                     state_fitness_callback=None, callback_user_info=None, delta=1e-4):
     """Use gradient_descent to find the optimal neural network weights.
 
     Parameters
@@ -103,7 +103,7 @@ def gradient_descent(problem, max_attempts=10, max_iters=np.inf,
         next_fitness = problem.eval_fitness(next_state)
 
         current_fitness = problem.get_fitness()
-        if next_fitness > current_fitness:
+        if next_fitness > current_fitness + delta:
             attempts = 0
         else:
             attempts += 1
