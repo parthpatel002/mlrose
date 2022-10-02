@@ -66,7 +66,7 @@ def unflatten_weights(flat_weights, node_list):
 
 
 def gradient_descent_original(problem, max_attempts=10, max_iters=np.inf,
-                     init_state=None, curve=False, random_state=None):
+                     init_state=None, curve=False, random_state=None, delta=0):
     """Use gradient_descent to find the optimal neural network weights.
     Parameters
     ----------
@@ -136,7 +136,7 @@ def gradient_descent_original(problem, max_attempts=10, max_iters=np.inf,
         next_state = problem.update_state(updates)
         next_fitness = problem.eval_fitness(next_state)
 
-        if next_fitness > problem.get_fitness():
+        if next_fitness > problem.get_fitness() + delta:
             attempts = 0
         else:
             attempts += 1
