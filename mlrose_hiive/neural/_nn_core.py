@@ -108,7 +108,7 @@ class _NNCore(_NNBase):
                     'simulated_annealing', 'genetic_alg',
                     'gradient_descent'.""")
 
-    def fit(self, X, y=None, init_weights=None):
+    def fit(self, X, y=None, init_weights=None, delta=0):
         """Fit neural network to data.
 
         Parameters
@@ -150,14 +150,14 @@ class _NNCore(_NNBase):
                                                                     self.is_classifier)
         self.problem = problem
         if self.algorithm == 'random_hill_climb':
-            fitness_curve, fitted_weights, loss = self.__run_with_rhc(init_weights, num_nodes, problem)
+            fitness_curve, fitted_weights, loss = self.__run_with_rhc(init_weights, num_nodes, problem, delta=delta)
 
         elif self.algorithm == 'simulated_annealing':
-            fitness_curve, fitted_weights, loss = self._run_with_sa(init_weights, num_nodes, problem)
+            fitness_curve, fitted_weights, loss = self._run_with_sa(init_weights, num_nodes, problem, delta=delta)
         elif self.algorithm == 'genetic_alg':
-            fitness_curve, fitted_weights, loss = self._run_with_ga(problem)
+            fitness_curve, fitted_weights, loss = self._run_with_ga(problem, delta=delta)
         else:  # Gradient descent case
-            fitness_curve, fitted_weights, loss = self._run_with_gd(init_weights, num_nodes, problem)
+            fitness_curve, fitted_weights, loss = self._run_with_gd(init_weights, num_nodes, problem, delta=delta)
 
         # Save fitted weights and node list
         self.node_list = node_list
@@ -170,7 +170,7 @@ class _NNCore(_NNBase):
 
         return self
 
-    def _run_with_gd(self, init_weights, num_nodes, problem):
+    def _run_with_gd(self, init_weights, num_nodes, problem, delta=0):
         if init_weights is None:
             init_weights = np.random.uniform(-1, 1, num_nodes)
 
@@ -179,11 +179,12 @@ class _NNCore(_NNBase):
             max_attempts=self.max_attempts if self.early_stopping else self.max_iters,
             max_iters=self.max_iters,
             curve=self.curve,
-            init_state=init_weights)
+            init_state=init_weights,
+            delta=delta)
 
         return ([] if fitness_curve is None else fitness_curve), fitted_weights, loss
 
-    def _run_with_ga(self, problem):
+    def _run_with_ga(self, problem, delta=0):
         fitness_curve = []
         if self.curve:
             fitted_weights, loss, fitness_curve = genetic_alg(
@@ -193,7 +194,8 @@ class _NNCore(_NNBase):
                 max_attempts=self.max_attempts if self.early_stopping else
                 self.max_iters,
                 max_iters=self.max_iters,
-                curve=self.curve)
+                curve=self.curve,
+                delta=delta)
         else:
             fitted_weights, loss, _ = genetic_alg(
                 problem,
@@ -201,10 +203,11 @@ class _NNCore(_NNBase):
                 max_attempts=self.max_attempts if self.early_stopping else
                 self.max_iters,
                 max_iters=self.max_iters,
-                curve=self.curve)
+                curve=self.curve,
+                delta=delta)
         return fitness_curve, fitted_weights, loss
 
-    def _run_with_sa(self, init_weights, num_nodes, problem):
+    def _run_with_sa(self, init_weights, num_nodes, problem, delta=0):
         fitness_curve = []
         if init_weights is None:
             init_weights = np.random.uniform(-1, 1, num_nodes)
@@ -216,7 +219,8 @@ class _NNCore(_NNBase):
                 self.max_iters,
                 max_iters=self.max_iters,
                 init_state=init_weights,
-                curve=self.curve)
+                curve=self.curve,
+                delta=delta)
         else:
             fitted_weights, loss, _ = simulated_annealing(
                 problem,
@@ -225,10 +229,11 @@ class _NNCore(_NNBase):
                 self.max_iters,
                 max_iters=self.max_iters,
                 init_state=init_weights,
-                curve=self.curve)
+                curve=self.curve,
+                delta=delta)
         return fitness_curve, fitted_weights, loss
 
-    def __run_with_rhc(self, init_weights, num_nodes, problem):
+    def __run_with_rhc(self, init_weights, num_nodes, problem, delta=0):
         fitness_curve = []
         fitted_weights = []
         loss = np.inf
@@ -245,14 +250,15 @@ class _NNCore(_NNBase):
                                       self.max_iters,
                                       max_iters=self.max_iters,
                                       restarts=0, init_state=restart_weights,
-                                      curve=self.curve)
+                                      curve=self.curve,
+                                      delta=delta)
             else:
                 current_weights, current_loss, _ = random_hill_climb(
                     problem,
                     max_attempts=self.max_attempts if self.early_stopping
                     else self.max_iters,
                     max_iters=self.max_iters,
-                    restarts=0, init_state=restart_weights, curve=self.curve)
+                    restarts=0, init_state=restart_weights, curve=self.curve, delta=delta)
 
             if current_loss < loss:
                 fitted_weights = current_weights
